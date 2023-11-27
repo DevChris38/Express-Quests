@@ -4,6 +4,8 @@ const app = require("../src/app");
 
 const database = require("../database");
 
+let idToDelete = "";
+
 afterAll(() => database.end());
 
 describe("GET /api/movies", () => {
@@ -76,6 +78,25 @@ describe("POST /api/movies", () => {
       .send(movieWithMisingProps);
 
     expect(response.status).toEqual(422);
+  });
+});
+
+describe("DELETE /api/movies/:id", () => {
+  it("should delete one movie", async () => {
+    const [intermediateResponse] = await database.query(
+      "SELECT * FROM movies ORDER BY id DESC LIMIT 1"
+    );
+
+    idToDelete = intermediateResponse[0].id;
+
+    const response = await request(app).delete(`/api/movies/${idToDelete}`);
+
+    expect(response.status).toEqual(204);
+  });
+
+  it("should delete no movie", async () => {
+    const response = await request(app).delete(`/api/movies/${idToDelete}`);
+    expect(response.status).toEqual(404);
   });
 });
 
@@ -161,6 +182,25 @@ describe("PUT /api/movies/:id", () => {
 
     const response = await request(app).put("/api/movies/0").send(newMovie);
 
+    expect(response.status).toEqual(404);
+  });
+});
+
+describe("DELETE /api/movies/:id", () => {
+  it("should delete one movie", async () => {
+    const [intermediateResponse] = await database.query(
+      "SELECT * FROM movies ORDER BY id DESC LIMIT 1"
+    );
+
+    idToDelete = intermediateResponse[0].id;
+
+    const response = await request(app).delete(`/api/movies/${idToDelete}`);
+
+    expect(response.status).toEqual(204);
+  });
+
+  it("should delete no movie", async () => {
+    const response = await request(app).delete(`/api/movies/${idToDelete}`);
     expect(response.status).toEqual(404);
   });
 });

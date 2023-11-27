@@ -79,6 +79,25 @@ describe("GET /api/users/:id", () => {
   });
 });
 
+describe("DELETE /api/users/:id", () => {
+  it("should delete one user", async () => {
+    const [intermediateResponse] = await database.query(
+      "SELECT * FROM users ORDER BY id DESC LIMIT 1"
+    );
+
+    idToDelete = intermediateResponse[0].id;
+
+    const response = await request(app).delete(`/api/users/${idToDelete}`);
+
+    expect(response.status).toEqual(204);
+  });
+
+  it("should delete no user", async () => {
+    const response = await request(app).delete(`/api/users/${idToDelete}`);
+    expect(response.status).toEqual(404);
+  });
+});
+
 describe("PUT /api/users/:id", () => {
   it("should edit user", async () => {
     const newUser = {
@@ -149,6 +168,25 @@ describe("PUT /api/users/:id", () => {
 
     const response = await request(app).put("/api/users/0").send(newUser);
 
+    expect(response.status).toEqual(404);
+  });
+});
+
+describe("DELETE /api/users/:id", () => {
+  it("should delete one user", async () => {
+    const [intermediateResponse] = await database.query(
+      "SELECT * FROM users ORDER BY id DESC LIMIT 1"
+    );
+
+    idToDelete = intermediateResponse[0].id;
+
+    const response = await request(app).delete(`/api/users/${idToDelete}`);
+
+    expect(response.status).toEqual(204);
+  });
+
+  it("should delete no user", async () => {
+    const response = await request(app).delete(`/api/users/${idToDelete}`);
     expect(response.status).toEqual(404);
   });
 });
