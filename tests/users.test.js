@@ -78,3 +78,77 @@ describe("GET /api/users/:id", () => {
     });
   });
 });
+
+describe("PUT /api/users/:id", () => {
+  it("should edit user", async () => {
+    const newUser = {
+      firstname: "Marie",
+      lastname: "Martin",
+      email: `${crypto.randomUUID()}@wild.co`,
+      language: "French",
+    };
+
+    const [result] = await database.query(
+      "INSERT INTO users(firstname, lastname, email, language) VALUES (?, ?, ?, ?)",
+      [newUser.firstname, newUser.lastname, newUser.email, newUser.language]
+    );
+
+    const id = result.insertId;
+
+    const updatedUser = {
+      firstname: "Anne",
+      lastname: "Trotro",
+      email: `${crypto.randomUUID()}@wild.co`,
+      language: "HiHan",
+    };
+
+    const response = await request(app)
+      .put(`/api/users/${id}`)
+      .send(updatedUser);
+
+    expect(response.status).toEqual(204);
+
+    const [result2] = await database.query(
+      "SELECT * FROM users WHERE id=?",
+      id
+    );
+    const [userInDatabase] = result2;
+
+    expect(userInDatabase).toHaveProperty("id");
+
+    expect(userInDatabase).toHaveProperty("firstname");
+    expect(userInDatabase.firstname).toStrictEqual(updatedUser.firstname);
+
+    expect(userInDatabase).toHaveProperty("lastname");
+    expect(userInDatabase.lastname).toStrictEqual(updatedUser.lastname);
+
+    expect(userInDatabase).toHaveProperty("email");
+    expect(userInDatabase.email).toStrictEqual(updatedUser.email);
+
+    expect(userInDatabase).toHaveProperty("language");
+    expect(userInDatabase.language).toStrictEqual(updatedUser.language);
+  });
+
+  it("should return an error", async () => {
+    const userWithMissinProps = { firstname: "toto" };
+
+    const response = await request(app)
+      .put(`/api/users/1`)
+      .send(userWithMissinProps);
+
+    expect(response.status).toEqual(500);
+  });
+
+  it("should return no user", async () => {
+    const newUser = {
+      firstname: "Anne",
+      lastname: "Trotro",
+      email: `${crypto.randomUUID()}@wild.co`,
+      language: "HiHan",
+    };
+
+    const response = await request(app).put("/api/users/0").send(newUser);
+
+    expect(response.status).toEqual(404);
+  });
+});
