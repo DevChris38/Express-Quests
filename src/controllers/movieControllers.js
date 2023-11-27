@@ -6,7 +6,6 @@ const getMovies = (req, res) => {
   database
     .query("select * from movies")
     .then(([movies]) => {
-      console.log("tototototo");
       res.json(movies);
     })
     .catch((err) => {
@@ -32,35 +31,6 @@ const getMovieById = (req, res) => {
     });
 };
 
-const getUsers = (req, res) => {
-  database
-    .query("select * from users")
-    .then(([users]) => {
-      res.json(users);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
-};
-
-const getUsersById = (req, res) => {
-  const id = parseInt(req.params.id);
-
-  database
-    .query("select * from users where id = ?", [id])
-    .then(([users]) => {
-      if (users.find((user) => (user.id = id))) {
-        res.json(users.find((user) => (user.id = id)));
-      } else {
-        res.sendStatus(404);
-      }
-    })
-    .catch((err) => {
-      res.status(500).send("Not Found");
-    });
-};
-
 const postMovie = (req, res) => {
   const { title, director, year, color, duration } = req.body;
   database
@@ -77,15 +47,21 @@ const postMovie = (req, res) => {
     });
 };
 
-const postUsers = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
+const putMovie = (req, res) => {
+  const id = parseInt(req.params.id);
+  const { title, director, year, color, duration } = req.body;
+
   database
     .query(
-      "insert into users(firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, city, language]
+      "UPDATE movies SET title = ?, director = ?, year = ?, color = ?, duration = ? WHERE id = ?",
+      [title, director, year, color, duration, id]
     )
     .then(([result]) => {
-      res.status(201).send({ id: result.insertId });
+      if (result.affectedRows === 0) {
+        res.sendStatus(404);
+      } else {
+        res.sendStatus(200);
+      }
     })
     .catch((err) => {
       console.error(err);
@@ -96,8 +72,6 @@ const postUsers = (req, res) => {
 module.exports = {
   getMovies,
   getMovieById,
-  getUsers,
-  getUsersById,
   postMovie,
-  postUsers,
+  putMovie,
 };
